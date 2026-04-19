@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>InstalacionesJavier — Pedidos</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --surface2: #22223b;
+    --accent: #f5a623;
+    --accent2: #e8471e;
+    --text: #f0ede8;
+    --text-muted: #8a8a9a;
+    --border: #2e2e4a;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: var(--surface);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 2px solid var(--accent);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo-j {
+    width: 44px;
+    height: 44px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--bg);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.2);
+  }
+
+  .header-text h1 {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+
+  .header-text p {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .btn-icon:active { transform: scale(0.92); background: var(--border); }
+
+  /* ── LOADING ── */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 9999;
+  }
+  .loading-logo {
+    width: 72px;
+    height: 72px;
+    background: var(--accent);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 36px;
+    color: var(--bg);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245,166,35,0.4); }
+    50% { box-shadow: 0 0 0 16px rgba(245,166,35,0); }
+  }
+  .loading-text { font-size: 16px; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+  .loading-error { color: var(--red); text-align: center; padding: 20px; font-size: 14px; line-height: 1.6; }
+
+  /* ── MAIN WRAPPER ── */
+  #mainContent { display: none; padding-bottom: 100px; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── HOME SCREEN ── */
+  #screen-home { padding: 20px; }
+
+  .new-order-btn {
+    width: 100%;
+    padding: 22px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Barlow', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin-bottom: 28px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(245,166,35,0.3);
+    text-transform: uppercase;
+  }
+  .new-order-btn:active { transform: scale(0.97); box-shadow: none; }
+
+  .section-label {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .history-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .history-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .history-card:active { background: var(--surface2); transform: scale(0.98); }
+
+  .history-card .card-icon {
+    width: 42px;
+    height: 42px;
+    background: var(--surface2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .history-card .card-info { flex: 1; min-width: 0; }
+  .history-card .card-name {
+    font-weight: 700;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history-card .card-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+    margin-top: 2px;
+  }
+  .history-card .card-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .history-card .card-badge.sent {
+    background: rgba(46,204,113,0.15);
+    color: var(--green);
+  }
+
+  .empty-history {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  /* ── ORDER SCREEN ── */
+  #screen-order { padding: 0; }
+
+  .order-topbar {
+    padding: 14px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-back {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+
+  .order-title-wrap { flex: 1; min-width: 0; }
+  .order-title-wrap .order-name {
+    font-weight: 700;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .order-title-wrap .order-date {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .order-body { padding: 16px 20px; }
+
+  .order-info-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .input-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .input-label {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .input-field {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 12px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  .input-field:focus { outline: none; border-color: var(--accent); }
+  .input-field::placeholder { color: var(--text-muted); }
+
+  /* Search */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+  .search-field {
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 12px 12px 38px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 16px;
+    color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .search-field:focus { outline: none; border-color: var(--accent); }
+  .search-field::placeholder { color: var(--text-muted); }
+
+  /* Category pills */
+  .cat-pills {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    scrollbar-width: none;
+  }
+  .cat-pills::-webkit-scrollbar { display: none; }
+  .cat-pill {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border-radius: 20px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .cat-pill.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+  .cat-pill:active { transform: scale(0.95); }
+
+  /* Product list */
+  .products-list { display: flex; flex-direction: column; gap: 2px; }
+
+  .cat-block { margin-bottom: 8px; }
+  .cat-header {
+    padding: 8px 12px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    background: rgba(245,166,35,0.07);
+    border-radius: 6px;
+    margin-bottom: 2px;
+  }
+
+  .product-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface);
+    border-radius: 8px;
+    margin-bottom: 2px;
+    transition: background 0.15s;
+    gap: 10px;
+  }
+  .product-row.has-qty { background: var(--surface2); border-left: 3px solid var(--accent); }
+  .product-row.hidden { display: none; }
+
+  .product-name {
+    flex: 1;
+    font-size: 15px;
+    line-height: 1.3;
+    color: var(--text);
+  }
+
+  .qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .qty-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-family: 'Space Mono', monospace;
+  }
+  .qty-btn:active { transform: scale(0.88); }
+  .qty-btn.minus { color: var(--text-muted); }
+  .qty-btn.plus { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700; }
+
+  .qty-display {
+    width: 34px;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    background: none;
+    border: none;
+    outline: none;
+    cursor: text;
+    padding: 0;
+  }
+  .qty-display:focus { color: var(--accent); }
+
+  .no-results {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* ── FAB RESUMEN ── */
+  .fab-summary {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent2);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 16px 32px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 17px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(232,71,30,0.45);
+    transition: all 0.2s;
+    display: none;
+    z-index: 50;
+    white-space: nowrap;
+  }
+  .fab-summary.visible { display: flex; align-items: center; gap: 8px; }
+  .fab-summary:active { transform: translateX(-50%) scale(0.95); }
+
+  /* ── SUMMARY SCREEN ── */
+  #screen-summary { padding: 0; }
+
+  .summary-topbar {
+    padding: 14px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .summary-body { padding: 20px; }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .summary-meta { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .summary-meta .meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 3px 0;
+  }
+  .summary-meta .meta-label { color: var(--text-muted); font-family: 'Space Mono', monospace; font-size: 12px; }
+  .summary-meta .meta-value { font-weight: 600; }
+
+  .summary-cat { margin-bottom: 16px; }
+  .summary-cat-name {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+  }
+  .summary-item:last-child { border-bottom: none; }
+  .summary-item .s-qty {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 16px;
+    margin-left: 12px;
+    white-space: nowrap;
+  }
+
+  .summary-empty {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .total-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    margin-top: 4px;
+    border-top: 2px solid var(--accent);
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .total-line .total-num { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 18px; }
+
+  /* Confirm box */
+  .confirm-box {
+    background: rgba(245,166,35,0.08);
+    border: 1.5px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .confirm-box p {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .confirm-box p strong { color: var(--accent); }
+
+  .confirm-actions { display: flex; flex-direction: column; gap: 10px; }
+
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    border-radius: var(--radius);
+    border: none;
+    font-family: 'Barlow', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-whatsapp { background: #25D366; color: white; }
+  .btn-copy { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-mail { background: #4a90d9; color: white; }
+  .btn-edit { background: var(--surface2); color: var(--accent); border: 1.5px solid var(--accent); }
+  .btn-danger { background: rgba(231,76,60,0.15); color: var(--red); border: 1.5px solid var(--red); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    color: var(--text);
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 9999;
+    white-space: nowrap;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  /* ── CAT BLOCK HIDDEN ── */
+  .cat-block.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo">J</div>
+  <div class="loading-text">Cargando catálogo...</div>
+</div>
+
+<!-- APP -->
+<div id="mainContent">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div class="logo-j">J</div>
+    <div class="header-text">
+      <h1>InstalacionesJavier</h1>
+      <p>Pedidos al almacén</p>
+    </div>
+  </div>
+
+  <!-- SCREEN: HOME -->
+  <div class="screen active" id="screen-home">
+    <div style="padding:20px;">
+      <button class="new-order-btn" onclick="startNewOrder()">+ Nuevo pedido</button>
+
+      <div class="section-label">Últimos pedidos</div>
+      <div class="history-list" id="historyList">
+        <div class="empty-history">Aún no hay pedidos guardados.<br>Pulsa el botón para empezar.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: ORDER (creación/edición) -->
+  <div class="screen" id="screen-order">
+    <div class="order-topbar">
+      <button class="btn-back" onclick="goHome()">←</button>
+      <div class="order-title-wrap">
+        <div class="order-name" id="orderNameDisplay">Nuevo pedido</div>
+        <div class="order-date" id="orderDateDisplay"></div>
+      </div>
+      <button class="btn-icon" onclick="goToSummary()" title="Ver resumen">📋</button>
+    </div>
+
+    <div class="order-body">
+      <div class="order-info-row">
+        <div class="input-wrap">
+          <span class="input-label">Obra / Lugar</span>
+          <input class="input-field" type="text" id="fieldObra" placeholder="Ej: Casa Martínez" oninput="saveCurrentOrder()">
+        </div>
+        <div class="input-wrap">
+          <span class="input-label">Nota (opcional)</span>
+          <input class="input-field" type="text" id="fieldNota" placeholder="Ej: Urgente" oninput="saveCurrentOrder()">
+        </div>
+      </div>
+
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-field" type="text" id="searchField" placeholder="Buscar producto..." oninput="filterProducts(this.value)">
+      </div>
+
+      <div class="cat-pills" id="catPills"></div>
+      <div class="products-list" id="productsList"></div>
+    </div>
+
+    <button class="fab-summary" id="fabSummary" onclick="goToSummary()">
+      📋 Ver resumen <span id="fabCount"></span>
+    </button>
+  </div>
+
+  <!-- SCREEN: SUMMARY -->
+  <div class="screen" id="screen-summary">
+    <div class="summary-topbar">
+      <button class="btn-back" onclick="backToOrder()">← Editar</button>
+      <div style="flex:1; font-weight:700; font-size:16px;">Resumen del pedido</div>
+    </div>
+
+    <div class="summary-body">
+      <div class="summary-card" id="summaryCard"></div>
+
+      <div class="confirm-box">
+        <p><strong>¿Falta algo?</strong><br>Puedes volver atrás para añadir más productos o cambiar cantidades.</p>
+        <div class="confirm-actions">
+          <button class="btn-primary btn-whatsapp" onclick="shareWhatsApp()">📲 Enviar por WhatsApp</button>
+          <button class="btn-primary btn-copy" onclick="copyText()">📋 Copiar texto</button>
+          <button class="btn-primary btn-mail" onclick="shareMail()">✉️ Enviar por correo</button>
+          <button class="btn-primary btn-edit" onclick="backToOrder()">← Volver a editar</button>
+          <button class="btn-primary btn-danger" onclick="deleteCurrentOrder()">🗑 Eliminar este pedido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// ESTADO GLOBAL
+// ─────────────────────────────────────────────
+const STORAGE_KEY   = 'ij_orders_v1';
+const CATALOG_KEY   = 'ij_catalog_v1';
+const CSV_URL       = './PRODUCTOS.csv';
+const MAX_HISTORY   = 5;
+
+let catalog         = {};         // { CATEGORIA: [producto, ...] }
+let orders          = [];         // historial (últimos MAX_HISTORY)
+let currentOrderId  = null;       // id del pedido activo
+let activeCat       = 'TODAS';
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadCatalog();
+  loadOrders();
+  renderHome();
+  document.getElementById('loadingOverlay').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+});
+
+async function loadCatalog() {
+  const overlay = document.getElementById('loadingOverlay');
+  const cached  = localStorage.getItem(CATALOG_KEY);
+  if (cached) { try { catalog = JSON.parse(cached); } catch(e) {} }
+
+  try {
+    const res = await fetch(CSV_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const parsed = parseCSV(text);
+    if (Object.keys(parsed).length > 0) {
+      catalog = parsed;
+      localStorage.setItem(CATALOG_KEY, JSON.stringify(catalog));
+    }
+  } catch(e) {
+    if (Object.keys(catalog).length === 0) {
+      overlay.innerHTML = `<div class="loading-error">
+        ❌ No se pudo cargar el catálogo.<br><br>
+        Asegúrate de que <strong>PRODUCTOS.csv</strong> está en el mismo directorio.<br><br>
+        <small>${e.message}</small>
+      </div>`;
+      await new Promise(() => {}); // detener
+    }
+    // si hay caché, continúa silenciosamente
+  }
+}
+
+function parseCSV(text) {
+  const result = {};
+  const lines  = text.split(/\r?\n/);
+  let start    = 0;
+  if (lines[0] && lines[0].toLowerCase().includes('categoria')) start = 1;
+
+  for (let i = start; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    // split respetando comillas
+    const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+                      .map(p => p.trim().replace(/^"|"$/g, ''));
+    if (parts.length >= 2) {
+      const cat  = (parts[0] || 'SIN CATEGORÍA').toUpperCase();
+      const prod = parts[1];
+      if (prod) {
+        if (!result[cat]) result[cat] = [];
+        result[cat].push(prod);
+      }
+    }
+  }
+  return result;
+}
+
+// ─────────────────────────────────────────────
+// PERSISTENCIA
+// ─────────────────────────────────────────────
+function loadOrders() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) orders = JSON.parse(raw);
+    orders.forEach(o => {
+      if (!o.products) o.products = {};
+      if (!o.isSent)   o.isSent   = false;
+    });
+  } catch(e) { orders = []; }
+}
+
+function saveOrders() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
+function getOrder(id) {
+  return orders.find(o => o.id === id);
+}
+
+// ─────────────────────────────────────────────
+// NAVEGACIÓN
+// ─────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goHome() {
+  renderHome();
+  showScreen('home');
+}
+
+function backToOrder() {
+  showScreen('order');
+}
+
+// ─────────────────────────────────────────────
+// HOME
+// ─────────────────────────────────────────────
+function renderHome() {
+  const list = document.getElementById('historyList');
+  if (orders.length === 0) {
+    list.innerHTML = `<div class="empty-history">Aún no hay pedidos guardados.<br>Pulsa el botón para empezar.</div>`;
+    return;
+  }
+  list.innerHTML = orders.slice().reverse().map(o => {
+    const count = Object.keys(o.products).length;
+    const badge = o.isSent
+      ? `<span class="card-badge sent">Enviado</span>`
+      : `<span class="card-badge">${count} producto${count !== 1 ? 's' : ''}</span>`;
+    return `
+      <div class="history-card" onclick="openOrder(${o.id})">
+        <div class="card-icon">${o.isSent ? '✅' : '📦'}</div>
+        <div class="card-info">
+          <div class="card-name">${o.name}</div>
+          <div class="card-meta">${o.date}${o.obra ? ' · ' + o.obra : ''}</div>
+        </div>
+        ${badge}
+      </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// CREAR / ABRIR PEDIDO
+// ─────────────────────────────────────────────
+function startNewOrder() {
+  const id    = Date.now();
+  const order = {
+    id,
+    name:     'Pedido ' + formatDateShort(new Date()),
+    date:     formatDate(new Date()),
+    obra:     '',
+    nota:     '',
+    products: {},
+    isSent:   false
+  };
+  orders.push(order);
+  // mantener solo los últimos MAX_HISTORY
+  if (orders.length > MAX_HISTORY) orders.splice(0, orders.length - MAX_HISTORY);
+  saveOrders();
+  currentOrderId = id;
+  openOrderScreen(order);
+}
+
+function openOrder(id) {
+  currentOrderId = id;
+  const order = getOrder(id);
+  if (!order) return;
+  openOrderScreen(order);
+}
+
+function openOrderScreen(order) {
+  activeCat = 'TODAS';
+  document.getElementById('orderNameDisplay').textContent = order.name;
+  document.getElementById('orderDateDisplay').textContent = order.date;
+  document.getElementById('fieldObra').value  = order.obra  || '';
+  document.getElementById('fieldNota').value  = order.nota  || '';
+  document.getElementById('searchField').value = '';
+  renderCatPills();
+  renderProductList('');
+  updateFab();
+  showScreen('order');
+}
+
+// ─────────────────────────────────────────────
+// GUARDAR CAMBIOS DEL PEDIDO ACTIVO
+// ─────────────────────────────────────────────
+function saveCurrentOrder() {
+  const o = getOrder(currentOrderId);
+  if (!o) return;
+  o.obra = document.getElementById('fieldObra').value.trim();
+  o.nota = document.getElementById('fieldNota').value.trim();
+  // actualizar nombre si hay obra
+  if (o.obra) {
+    o.name = o.obra + ' · ' + formatDateShort(new Date(o.id));
+    document.getElementById('orderNameDisplay').textContent = o.name;
+  }
+  saveOrders();
+}
+
+// ─────────────────────────────────────────────
+// CATÁLOGO — RENDER
+// ─────────────────────────────────────────────
+function renderCatPills() {
+  const container = document.getElementById('catPills');
+  const cats = Object.keys(catalog).sort();
+  let html = `<button class="cat-pill ${activeCat === 'TODAS' ? 'active' : ''}" onclick="setCat('TODAS')">Todas</button>`;
+  cats.forEach(c => {
+    html += `<button class="cat-pill ${activeCat === c ? 'active' : ''}" onclick="setCat('${c.replace(/'/g,"\\'")}')">` + c + `</button>`;
+  });
+  container.innerHTML = html;
+}
+
+function setCat(cat) {
+  activeCat = cat;
+  renderCatPills();
+  filterProducts(document.getElementById('searchField').value);
+}
+
+function renderProductList(searchTerm) {
+  const o   = getOrder(currentOrderId);
+  const container = document.getElementById('productsList');
+  const term = searchTerm.toLowerCase().trim();
+  let   html = '';
+  let   anyVisible = false;
+
+  Object.keys(catalog).sort().forEach(cat => {
+    if (activeCat !== 'TODAS' && activeCat !== cat) return;
+
+    const products = catalog[cat];
+    let rowsHtml   = '';
+    let catVisible = false;
+
+    products.forEach(prod => {
+      const matchSearch = !term || prod.toLowerCase().includes(term);
+      if (!matchSearch) return;
+
+      catVisible = true;
+      anyVisible = true;
+      const qty = o ? (o.products[prod] || 0) : 0;
+      const hasQty = qty > 0;
+      const escapedProd = prod.replace(/'/g, "\\'");
+
+      rowsHtml += `
+        <div class="product-row ${hasQty ? 'has-qty' : ''}" id="row-${CSS.escape(prod)}">
+          <div class="product-name">${prod}</div>
+          <div class="qty-controls">
+            <button class="qty-btn minus" onclick="changeQty('${escapedProd}', -1)">−</button>
+            <input class="qty-display" type="number" min="0"
+              value="${qty || ''}"
+              placeholder="0"
+              onchange="setQty('${escapedProd}', this.value)"
+              onfocus="this.select()">
+            <button class="qty-btn plus" onclick="changeQty('${escapedProd}', 1)">+</button>
+          </div>
+        </div>`;
+    });
+
+    if (catVisible) {
+      html += `<div class="cat-block">
+        <div class="cat-header">${cat}</div>
+        ${rowsHtml}
+      </div>`;
+    }
+  });
+
+  if (!anyVisible) {
+    html = `<div class="no-results">No se encontraron productos para "<strong>${searchTerm}</strong>"</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function filterProducts(term) {
+  renderProductList(term);
+}
+
+// ─────────────────────────────────────────────
+// CANTIDADES
+// ─────────────────────────────────────────────
+function changeQty(prod, delta) {
+  const o = getOrder(currentOrderId);
+  if (!o) return;
+  const cur = o.products[prod] || 0;
+  const nv  = Math.max(0, cur + delta);
+  if (nv === 0) delete o.products[prod];
+  else          o.products[prod] = nv;
+  saveOrders();
+  // actualizar solo esa fila visualmente
+  refreshRow(prod, nv);
+  updateFab();
+}
+
+function setQty(prod, val) {
+  const o  = getOrder(currentOrderId);
+  if (!o) return;
+  const nv = parseInt(val) || 0;
+  if (nv <= 0) delete o.products[prod];
+  else         o.products[prod] = nv;
+  saveOrders();
+  refreshRow(prod, nv);
+  updateFab();
+}
+
+function refreshRow(prod, qty) {
+  // reemplazar la fila sin re-renderizar todo
+  const o = getOrder(currentOrderId);
+  const row = document.querySelector(`[id="row-${CSS.escape(prod)}"]`);
+  if (!row) return;
+  const hasQty = qty > 0;
+  row.className = 'product-row' + (hasQty ? ' has-qty' : '');
+  const input = row.querySelector('.qty-display');
+  if (input && document.activeElement !== input) {
+    input.value = qty || '';
+  }
+}
+
+// ─────────────────────────────────────────────
+// FAB
+// ─────────────────────────────────────────────
+function updateFab() {
+  const o   = getOrder(currentOrderId);
+  const fab = document.getElementById('fabSummary');
+  const cnt = document.getElementById('fabCount');
+  if (!o) { fab.classList.remove('visible'); return; }
+  const total = Object.values(o.products).reduce((a, b) => a + b, 0);
+  const lines = Object.keys(o.products).length;
+  if (lines > 0) {
+    fab.classList.add('visible');
+    cnt.textContent = `(${lines} art.)`;
+  } else {
+    fab.classList.remove('visible');
+  }
+}
+
+// ─────────────────────────────────────────────
+// RESUMEN
+// ─────────────────────────────────────────────
+function goToSummary() {
+  const o = getOrder(currentOrderId);
+  if (!o) return;
+  if (Object.keys(o.products).length === 0) {
+    showToast('Añade al menos un producto', 'error');
+    return;
+  }
+  renderSummaryCard(o);
+  showScreen('summary');
+}
+
+function renderSummaryCard(o) {
+  const card = document.getElementById('summaryCard');
+  const totalLines = Object.keys(o.products).length;
+  const totalUnits = Object.values(o.products).reduce((a,b) => a+b, 0);
+
+  let html = `
+    <div class="summary-meta">
+      <div class="meta-row"><span class="meta-label">FECHA</span><span class="meta-value">${o.date}</span></div>
+      ${o.obra ? `<div class="meta-row"><span class="meta-label">OBRA</span><span class="meta-value">${o.obra}</span></div>` : ''}
+      ${o.nota ? `<div class="meta-row"><span class="meta-label">NOTA</span><span class="meta-value">${o.nota}</span></div>` : ''}
+    </div>`;
+
+  if (totalLines === 0) {
+    html += `<div class="summary-empty">No hay productos en este pedido.</div>`;
+  } else {
+    Object.keys(catalog).sort().forEach(cat => {
+      const items = Object.entries(o.products).filter(([p]) => catalog[cat] && catalog[cat].includes(p));
+      if (items.length === 0) return;
+      html += `<div class="summary-cat">
+        <div class="summary-cat-name">${cat}</div>`;
+      items.forEach(([prod, qty]) => {
+        html += `<div class="summary-item">
+          <span>${prod}</span>
+          <span class="s-qty">${qty} ud.</span>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+
+    html += `<div class="total-line">
+      <span>${totalLines} artículos</span>
+      <span class="total-num">${totalUnits} ud. total</span>
+    </div>`;
+  }
+
+  card.innerHTML = html;
+}
+
+// ─────────────────────────────────────────────
+// COMPARTIR
+// ─────────────────────────────────────────────
+function buildText() {
+  const o = getOrder(currentOrderId);
+  if (!o) return '';
+  let txt = `PEDIDO ALMACÉN\n`;
+  txt += `═══════════════\n`;
+  txt += `Fecha: ${o.date}\n`;
+  if (o.obra) txt += `Obra: ${o.obra}\n`;
+  if (o.nota) txt += `Nota: ${o.nota}\n`;
+  txt += `\nPRODUCTOS:\n`;
+  txt += `───────────────\n`;
+
+  Object.keys(catalog).sort().forEach(cat => {
+    const items = Object.entries(o.products).filter(([p]) => catalog[cat] && catalog[cat].includes(p));
+    if (items.length === 0) return;
+    txt += `\n${cat}:\n`;
+    items.forEach(([prod, qty]) => { txt += `  • ${prod}: ${qty} ud.\n`; });
+  });
+
+  const totalUnits = Object.values(o.products).reduce((a,b) => a+b, 0);
+  const totalLines = Object.keys(o.products).length;
+  txt += `\n═══════════════\n`;
+  txt += `Total: ${totalLines} artículos / ${totalUnits} unidades\n`;
+  return txt;
+}
+
+function shareWhatsApp() {
+  const txt = buildText();
+  const url = `https://wa.me/?text=${encodeURIComponent(txt)}`;
+  window.open(url, '_blank');
+  markSent();
+}
+
+function copyText() {
+  const txt = buildText();
+  navigator.clipboard.writeText(txt).then(() => {
+    showToast('Copiado al portapapeles', 'success');
+    markSent();
+  }).catch(() => showToast('Error al copiar', 'error'));
+}
+
+function shareMail() {
+  const o   = getOrder(currentOrderId);
+  const txt = buildText();
+  const sub = encodeURIComponent(`Pedido almacén${o && o.obra ? ' – ' + o.obra : ''} – ${o ? o.date : ''}`);
+  const body = encodeURIComponent(txt);
+  window.location.href = `mailto:?subject=${sub}&body=${body}`;
+  markSent();
+}
+
+function markSent() {
+  const o = getOrder(currentOrderId);
+  if (!o) return;
+  o.isSent = true;
+  saveOrders();
+}
+
+// ─────────────────────────────────────────────
+// ELIMINAR PEDIDO
+// ─────────────────────────────────────────────
+function deleteCurrentOrder() {
+  if (!confirm('¿Eliminar este pedido?')) return;
+  orders = orders.filter(o => o.id !== currentOrderId);
+  saveOrders();
+  currentOrderId = null;
+  goHome();
+  showToast('Pedido eliminado');
+}
+
+// ─────────────────────────────────────────────
+// UTILIDADES
+// ─────────────────────────────────────────────
+function formatDate(d) {
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+function formatDateShort(d) {
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent   = msg;
+  t.className     = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = 'toast'; }, 2800);
+}
+</script>
+</body>
+</html>
